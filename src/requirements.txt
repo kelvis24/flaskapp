@@ -1,0 +1,5 @@
+Flask==2.0.1
+# Add any other dependencies here, one per line
+# Some examples:
+# requests==2.26.0
+# sqlalchemy==1.4.26
