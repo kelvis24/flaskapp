@@ -24,8 +24,9 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t flask-app:${{ github.sha }} .
-          docker push elviskimara/flask-app:${{ github.sha }}
+          TAG="${{ github.sha }}"  # This is the tag you want to use
+          docker build -t elviskimara/flask-app:${TAG} .
+          docker push elviskimara/flask-app:${TAG}
         env:
           DOCKER_CLI_ACI: 1
 
@@ -44,4 +45,4 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Deploy Docker container
-        run: docker run -d -p 4001:8080 flask-app:${{ github.sha }}
+        run: docker run -d -p 4001:8080 elviskimara/flask-app:${{ github.sha }}
