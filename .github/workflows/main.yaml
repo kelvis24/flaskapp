@@ -27,7 +27,7 @@ jobs:
           docker build -t your-image-name:${{ github.sha }} .
           docker push your-image-name:${{ github.sha }}
         env:
-          DOCKER_CLI_ACI=1
+          DOCKER_CLI_ACI: 1
 
   deploy:
     needs: build
