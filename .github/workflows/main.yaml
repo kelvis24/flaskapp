@@ -25,7 +25,7 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t flask-app:${{ github.sha }} .
-          docker push flask-app:${{ github.sha }}
+          docker push elviskimara/flask-app:${{ github.sha }}
         env:
           DOCKER_CLI_ACI: 1
 
