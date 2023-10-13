@@ -24,8 +24,8 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t your-image-name:${{ github.sha }} .
-          docker push your-image-name:${{ github.sha }}
+          docker build -t flask-app:${{ github.sha }} .
+          docker push flask-app:${{ github.sha }}
         env:
           DOCKER_CLI_ACI: 1
 
@@ -44,4 +44,4 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Deploy Docker container
-        run: docker run -d -p 4001:8080 your-image-name:${{ github.sha }}
+        run: docker run -d -p 4001:8080 flask-app:${{ github.sha }}
