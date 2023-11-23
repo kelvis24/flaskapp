@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Camera Capture</title>
+    <style>
+      #capturedImages img {
+        margin-top: 10px;
+        width: 100%; /* Adjust as needed */
+      }
+    </style>
+  </head>
+  <body>
+    <button id="captureButton">Capture Image</button>
+    <video id="video" width="640" height="480" autoplay></video>
+    <div id="capturedImages"></div>
+
+    <script>
+      let video = document.getElementById("video");
+      let captureButton = document.getElementById("captureButton");
+      let capturedImages = document.getElementById("capturedImages");
+
+      // Get access to the camera
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices
+          .getUserMedia({ video: true })
+          .then(function (stream) {
+            video.srcObject = stream;
+            video.play();
+          });
+      }
+
+      captureButton.addEventListener("click", function () {
+        captureAndSendImage();
+      });
+
+      async function captureAndSendImage() {
+        let canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas
+          .getContext("2d")
+          .drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Convert canvas to Blob as a PNG file
+        canvas.toBlob(async function (blob) {
+          let formData = new FormData();
+          formData.append("image", blob, "image.png"); // Append the blob as a PNG image file
+
+          await sendImageToAPI(formData); // Send the FormData
+        }, "image/png"); // Specify PNG format
+      }
+
+      // Send image to API function
+      async function sendImageToAPI(formData) {
+        const response = await fetch("/detect_objects", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const processedImageData = data.processed_image;
+          updateCapturedImage(`data:image/jpeg;base64,${processedImageData}`);
+        } else {
+          console.error(
+            "Error uploading and processing image:",
+            response.status,
+            response.statusText
+          );
+        }
+      }
+
+      // Update the displayed image
+      function updateCapturedImage(imageSrc) {
+        if (capturedImages.children.length > 0) {
+          capturedImages.children[0].src = imageSrc;
+        } else {
+          let img = new Image();
+          img.src = imageSrc;
+          capturedImages.appendChild(img);
+        }
+      }
+
+      // Auto capture and send every 5 seconds
+      setInterval(captureAndSendImage, 5000);
+    </script>
+  </body>
+</html>
