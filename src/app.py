@@ -91,7 +91,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)  # Enable CORS for your Flask app
 
-model = YOLO("safetyscanmodel/src/ppe.pt")
+model = YOLO("app/src/ppe.pt")
 
 classNames = ['Hardhat', 'Mask', 'NO-Hardhat', 'NO-Mask', 'NO-Safety Vest', 'Person', 'Safety Cone',
               'Safety Vest', 'machinery', 'vehicle']
