@@ -12,7 +12,7 @@ COPY src/requirements.txt ./
 COPY src/ppe.pt ./
 
 # Set the module name
-ENV MODULE safetyscanmodel
+ENV MODULE app
 ENV QT_X11_NO_MITSHM=1
 
 # Service must listen to $PORT environment variable.
