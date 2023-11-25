@@ -4,4 +4,4 @@ metadata:
   name: managed-cert
 spec:
   domains:
-    - www.safetyscan.live
+    - safetyscan.live
