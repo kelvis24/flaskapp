@@ -3,15 +3,44 @@
   <head>
     <title>Camera Capture</title>
     <style>
+      body {
+        background-color: #e0f7fa; /* Light blue background */
+        margin: 0; /* Removes default margin */
+        overflow: hidden; /* Hides scrollbars */
+      }
+
+      #controlPanel {
+        position: fixed;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10; /* Ensures the panel is above other elements */
+      }
+
+      #video,
       #capturedImages img {
-        margin-top: 10px;
-        width: 100%; /* Adjust as needed */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw; /* Full viewport width */
+        height: 100vh; /* Full viewport height */
+        object-fit: cover; /* Covers the full viewport without stretching */
+        z-index: 1; /* Behind the control panel */
+      }
+
+      #capturedImages {
+        position: absolute;
+        top: 0;
+        width: 100%;
+        height: 100%;
       }
     </style>
   </head>
   <body>
-    <button id="captureButton">Capture Image</button>
-    <video id="video" width="640" height="480" autoplay></video>
+    <div id="controlPanel">
+      <button id="captureButton">Capture Image</button>
+    </div>
+    <video id="video" autoplay></video>
     <div id="capturedImages"></div>
 
     <script>
