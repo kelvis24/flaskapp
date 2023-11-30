@@ -1,94 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <!-- Meta Tags -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Page Title -->
     <title>Safety Scan - Object Detection</title>
+
+    <!-- Styles -->
+    <style>
+      body {
+        background-color: #e0f7fa; /* Light blue background */
+        font-family: Arial, sans-serif; /* Optional: sets a nice, readable font */
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Centers content horizontally */
+        text-align: center; /* Centers text within elements */
+      }
+
+      img {
+        max-width: 100%; /* Makes images responsive */
+        height: auto;
+      }
+
+      .container {
+        width: 80%; /* Set a max width for the content and center it */
+        max-width: 800px; /* Maximum width of the container */
+        margin: 20px auto; /* Centers container */
+      }
+
+      form {
+        margin-top: 20px;
+      }
+
+      input[type="submit"] {
+        margin-top: 10px;
+      }
+    </style>
   </head>
   <body>
-    <h1>Welcome to Safety Scan</h1>
-    <p>
-      Safety Scan is an application that uses computer vision to detect
-      safety-related objects in images. You can upload an image, and Safety Scan
-      will identify objects like hardhats, masks, safety vests, and more.
-    </p>
-    <h2>How to Use</h2>
-    <ol>
-      <li>Click the "Choose File" button below to upload an image.</li>
-      <li>
-        Click the "Detect Objects" button to start the object detection process.
-      </li>
-      <li>
-        Wait for the results, and Safety Scan will display the processed image
-        with detected objects.
-      </li>
-    </ol>
-    <h2>Example Image</h2>
-    <p>Here's an example image you can use for testing:</p>
-    <img src="/static/phillip.png" alt="Example Image" width="400" />
-    <h2>Upload an Image</h2>
-    <form action="/detect_objects" method="post" enctype="multipart/form-data">
-      <input type="file" name="image" accept="image/*" required />
-      <input type="submit" value="Detect Objects" />
-    </form>
+    <div class="container">
+      <!-- Page Header -->
+      <h1>Welcome to Safety Scan</h1>
 
-    <h2>Processed Image</h2>
-    <div id="result-image">
-      <!-- Processed image will be displayed here -->
-      <img id="processedImage" src="" alt="Processed Image" />
-    </div>
-    <h2>Download JSON</h2>
-    <a id="downloadLink" href="#" download="processed_image.json"
-      >Download Processed JSON</a
-    >
+      <!-- Introduction Section -->
+      <p>
+        Safety Scan is an application that uses computer vision to detect
+        safety-related objects in images. You can upload an image, and Safety
+        Scan will identify objects like hardhats, masks, safety vests, and more.
+      </p>
 
-    <script>
-      // Get references to HTML elements
-      const processedImage = document.getElementById("processedImage");
-      const uploadForm = document.querySelector("form");
-      const downloadLink = document.getElementById("downloadLink");
+      <!-- Instructions Section -->
+      <h2>How to Use</h2>
+      <ol>
+        <li>Click the "Choose File" button below to upload an image.</li>
+        <li>
+          Click the "Detect Objects" button to start the object detection
+          process.
+        </li>
+        <li>
+          Wait for the results, and Safety Scan will display the processed image
+          with detected objects.
+        </li>
+      </ol>
 
-      // Add an event listener to the form for handling image upload
-      uploadForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
+      <!-- Example Image Section -->
+      <h2>Example Image</h2>
+      <p>Here's an example image you can use for testing:</p>
+      <img src="/static/phillip.png" alt="Example Image" width="400" />
 
-        const formData = new FormData(uploadForm);
+      <!-- Image Upload Form -->
+      <h2>Upload an Image</h2>
+      <form
+        action="/detect_objects"
+        method="post"
+        enctype="multipart/form-data"
+      >
+        <input type="file" name="image" accept="image/*" required />
+        <input type="submit" value="Detect Objects" />
+      </form>
 
-        console.log(formData);
+      <!-- Processed Image Display Section -->
+      <h2>Processed Image</h2>
+      <div id="result-image">
+        <!-- Processed image will be displayed here -->
+        <img id="processedImage" src="" alt="Processed Image" />
+      </div>
 
-        // Send the image data to your Flask API
-        const response = await fetch("/detect_objects", {
-          method: "POST",
-          body: formData,
-        });
+      <!-- Download JSON Section -->
+      <h2>Download JSON</h2>
+      <a id="downloadLink" href="#" download="processed_image.json"
+        >Download Processed JSON</a
+      >
 
-        if (response.ok) {
-          // Parse the JSON response
-          const data = await response.json();
+      <!-- JavaScript Section -->
+      <script>
+        // Get references to HTML elements
+        const processedImage = document.getElementById("processedImage");
+        const uploadForm = document.querySelector("form");
+        const downloadLink = document.getElementById("downloadLink");
 
-          // Processed image as base64 data
-          const processedImageData = data.processed_image;
+        // Event listener for handling image upload
+        uploadForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const formData = new FormData(uploadForm);
 
-          // Set the processed image's src attribute
-          processedImage.src = `data:image/jpeg;base64,${processedImageData}`;
-
-          // Generate a Blob containing the JSON data
-          const jsonBlob = new Blob([JSON.stringify(data)], {
-            type: "application/json",
+          // Send the image data to your Flask API
+          const response = await fetch("/detect_objects", {
+            method: "POST",
+            body: formData,
           });
 
-          // Generate a URL for the Blob and set it as the download link
-          const jsonUrl = URL.createObjectURL(jsonBlob);
-          downloadLink.href = jsonUrl;
-          downloadLink.style.display = "block";
-        } else {
-          console.error(
-            "Error uploading and processing image:",
-            response.status,
-            response.statusText
-          );
-        }
-      });
-    </script>
+          // Handling response
+          if (response.ok) {
+            const data = await response.json(); // Parse JSON response
+
+            // Update processed image display
+            processedImage.src = `data:image/jpeg;base64,${data.processed_image}`;
+
+            // Prepare JSON data for download
+            const jsonBlob = new Blob([JSON.stringify(data)], {
+              type: "application/json",
+            });
+            const jsonUrl = URL.createObjectURL(jsonBlob);
+            downloadLink.href = jsonUrl;
+            downloadLink.style.display = "block";
+          } else {
+            console.error(
+              "Error in image upload and processing:",
+              response.status,
+              response.statusText
+            );
+          }
+        });
+      </script>
+    </div>
   </body>
 </html>
