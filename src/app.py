@@ -274,13 +274,17 @@ def test_image():
         return jsonify({'error': str(e)}), 500
 
 def get_most_recent_model():
-    all_models = sorted(glob.glob(os.path.join(models_dir, 'my_facerecognition_model_*')))
-    
-    if not all_models:
-        return None
+    try:
+        all_models = sorted(glob.glob(os.path.join(models_dir, 'my_facerecognition_model_*')))
+        
+        if not all_models:
+            return None
 
-    most_recent_model = max(all_models, key=os.path.getctime)
-    return most_recent_model
+        most_recent_model = max(all_models, key=os.path.getctime)
+        return most_recent_model
+    except Exception as e:
+        print(f"Error getting most recent model: {str(e)}")
+        return None
 
 
 def preprocess_image(base64_image):
@@ -396,12 +400,33 @@ def detect_objects():
         original_image = img.copy()
         # Resize the image to (160, 160) for Face Recognition
         img_resized = cv2.resize(img, (160, 160))
+        
+        # Save the processed image to a file with a timestamp
+        timestamp = generate_timestamp()
+        processed_image_path = f'processed_image_{timestamp}.jpg'
+        cv2.imwrite(processed_image_path, original_image)
+
+        # Convert the processed image to base64
+        with open(processed_image_path, "rb") as image_file:
+            processed_image_base64 = base64.b64encode(image_file.read()).decode()
 
         # Load the most recent model
         most_recent_model = get_most_recent_model()
 
         if most_recent_model is None:
-            raise Exception("No models available")
+            # Handle the case when no models are available
+            return jsonify({
+                "violation_type": "No Violation",
+                "violation_details": [],
+                "name_prediction": None,
+                "processed_image": processed_image_base64,
+                "id": generate_unique_id(),
+                "alarm": "off",
+                "location": location,
+                "date": date,
+                "time": time,
+                "organizationId": None
+            })
 
         # Extract the model name from the model file path
         model_name = os.path.basename(most_recent_model)
@@ -426,16 +451,6 @@ def detect_objects():
 
         # Generate a unique ID based on the current time
         unique_id = generate_unique_id()
-
-        # Save the processed image to a file with a timestamp
-        timestamp = generate_timestamp()
-        processed_image_path = f'processed_image_{timestamp}.jpg'
-        cv2.imwrite(processed_image_path, original_image)
-
-        # Convert the processed image to base64
-        with open(processed_image_path, "rb") as image_file:
-            processed_image_base64 = base64.b64encode(image_file.read()).decode()
-
 
         # Create the response JSON
         response_data = {
