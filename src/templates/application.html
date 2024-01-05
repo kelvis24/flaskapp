@@ -39,6 +39,8 @@
   <body>
     <div id="controlPanel">
       <button id="captureButton">Capture Image</button>
+      <label for="locationInput">Enter Location:</label>
+      <input type="text" id="locationInput" required />
     </div>
     <video id="video" autoplay></video>
     <div id="capturedImages"></div>
@@ -47,6 +49,7 @@
       let video = document.getElementById("video");
       let captureButton = document.getElementById("captureButton");
       let capturedImages = document.getElementById("capturedImages");
+      let locationInput = document.getElementById("locationInput");
 
       // Get access to the camera
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -74,6 +77,9 @@
         canvas.toBlob(async function (blob) {
           let formData = new FormData();
           formData.append("image", blob, "image.png"); // Append the blob as a PNG image file
+          formData.append("location", locationInput.value); // Append user-entered location
+          formData.append("date", getCurrentDate()); // Append current date
+          formData.append("time", getCurrentTime()); // Append current time
 
           await sendImageToAPI(formData); // Send the FormData
         }, "image/png"); // Specify PNG format
@@ -90,6 +96,11 @@
           const data = await response.json();
           const processedImageData = data.processed_image;
           updateCapturedImage(`data:image/jpeg;base64,${processedImageData}`);
+
+          // Check if alarm is on and play the alarm
+          if (data.alarm === "on") {
+            playAlarm();
+          }
         } else {
           console.error(
             "Error uploading and processing image:",
@@ -108,6 +119,55 @@
           img.src = imageSrc;
           capturedImages.appendChild(img);
         }
+      }
+
+      // Function to get current date (YYYY-MM-DD)
+      function getCurrentDate() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+
+      // Function to get current time (HH:MM:SS)
+      function getCurrentTime() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        const seconds = String(now.getSeconds()).padStart(2, "0");
+        return `${hours}:${minutes}:${seconds}`;
+      }
+
+      // Play the alarm for 10 seconds
+      function playAlarm() {
+        console.log("Alarm on!");
+        // Add code to play the alarm sound (adjust as needed)
+        console.log("Playing alarm sound...");
+        const alarmSound = new Audio("/static/alarm.mp3");
+
+        alarmSound.onerror = function (e) {
+          console.error("Error loading the alarm sound:", e);
+        };
+
+        alarmSound.onended = function () {
+          console.log("Alarm playback ended.");
+        };
+
+        // Play the sound when the user interacts with the page
+        document.addEventListener("click", function playAlarmOnInteraction() {
+          // Remove the click event listener
+          document.removeEventListener("click", playAlarmOnInteraction);
+
+          // Play the alarm sound
+          alarmSound.play();
+
+          // Stop the alarm after 10 seconds
+          setTimeout(() => {
+            alarmSound.pause();
+            alarmSound.currentTime = 0;
+          }, 10000);
+        });
       }
 
       // Auto capture and send every 5 seconds
