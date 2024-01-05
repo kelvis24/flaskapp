@@ -94,6 +94,7 @@
 
         if (response.ok) {
           const data = await response.json();
+          console.log("Image uploaded and processed successfully:", data);
           const processedImageData = data.processed_image;
           updateCapturedImage(`data:image/jpeg;base64,${processedImageData}`);
 

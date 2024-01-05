@@ -48,8 +48,8 @@ classNames = ['Hardhat', 'Mask', 'NO-Hardhat', 'NO-Mask', 'NO-Safety Vest', 'Per
 myColor = (0, 0, 255)
 
 
-data_dir = 'database_directory'  # Change this to your database directory
-models_dir = 'models'
+data_dir = 'app/src/database_directory'
+models_dir = 'app/src/models'
 
 project_id = "safetyscan-8a191"
 # Initialize Firebase Admin SDK with your credentials

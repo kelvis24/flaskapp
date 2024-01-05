@@ -11,6 +11,8 @@ WORKDIR $APP_HOME
 COPY src/requirements.txt ./
 COPY src/ppe.pt ./
 COPY src/safetyscan-8a191-firebase-adminsdk-rsrsi-85c1eee585.json ./
+COPY src/database_directory ./
+COPY src/models ./
 
 # Set the module name
 ENV MODULE app
