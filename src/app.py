@@ -485,6 +485,118 @@ def detect_objects():
         return jsonify({"error": str(e)}), 500
 
 
+
+@app.route('/detect', methods=['POST'])
+def detect():
+    try:
+        global consecutive_safety_violations
+
+        # Get the uploaded image from the request
+        image_data = request.files['image']
+        location = request.form['location']
+        date = request.form['date']
+        time = request.form['time']
+        
+        print(location, date, time)
+        
+        image_bytes = image_data.read()
+        nparr = np.frombuffer(image_bytes, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+        # Perform object detection on the uploaded image
+        results = model(img)  # Perform object detection and assign results
+
+        # Initialize violation details as a list
+        violation_details = []
+
+        # Define colors for different classes
+        class_colors = {
+            'NO-Hardhat': (255, 0, 0),  # Red for NO-Hardhat
+            'NO-Safety Vest': (0, 0, 255),  # Blue for NO-Safety Vest
+            'NO-Mask': (0, 255, 0),  # Green for NO-Mask
+            'Hardhat': (0, 255, 255),  # Yellow for Hardhat
+            'Safety Vest': (255, 0, 255),  # Purple for Safety Vest
+            'Mask': (255, 255, 0)  # Cyan for Mask
+        }
+
+        for r in results:
+            boxes = r.boxes
+            for box in boxes:
+                # Bounding Box
+                x1, y1, x2, y2 = box.xyxy[0]
+                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+
+                # Confidence and Class Name
+                conf = math.ceil((box.conf[0] * 100)) / 100
+                cls = int(box.cls[0])
+                currentClass = classNames[cls]
+
+                if conf > 0.5:
+                    if currentClass in ['NO-Hardhat', 'NO-Safety Vest', 'NO-Mask']:
+                        violation_details.append(currentClass)
+
+                    myColor = class_colors.get(currentClass, (0, 0, 0))  # Default to black if class not found
+                    cvzone.putTextRect(img, f'{classNames[cls]} {conf}',
+                                       (max(0, x1), max(35, y1)), scale=1, thickness=1, colorB=myColor,
+                                       colorT=(255, 255, 255), colorR=myColor, offset=5)
+                    cv2.rectangle(img, (x1, y1), (x2, y2), myColor, 3)
+
+        original_image = img.copy()
+        # Resize the image to (160, 160) for Face Recognition
+        img_resized = cv2.resize(img, (160, 160))
+        
+        # Save the processed image to a file with a timestamp
+        timestamp = generate_timestamp()
+        processed_image_path = f'processed_image_{timestamp}.jpg'
+        cv2.imwrite(processed_image_path, original_image)
+
+        # Convert the processed image to base64
+        with open(processed_image_path, "rb") as image_file:
+            processed_image_base64 = base64.b64encode(image_file.read()).decode()
+
+        # Determine the violation type based on violation details
+        violation_type = "Safety Violation" if violation_details else "No Violation"
+
+        # Check if the violation type is Safety Violation and increment the counter
+        if violation_type == "Safety Violation":
+            consecutive_safety_violations += 1
+        else:
+            consecutive_safety_violations = 0  # Reset the counter if no safety violation
+
+        # Generate a unique ID based on the current time
+        unique_id = generate_unique_id()
+
+        # Create the response JSON
+        response_data = {
+            "violation_type": violation_type,
+            "violation_details": violation_details,
+            "processed_image": processed_image_path,
+            "id": unique_id,
+            "alarm": "off",
+            "location": location,
+            "date": date,
+            "time": time,
+        }
+
+        # Check if there have been 10 consecutive safety violations
+        if consecutive_safety_violations >= 10:
+            response_data["alarm"] = "on"
+            consecutive_safety_violations = 0  # Reset the counter
+            push_to_DB(response_data)
+
+        print(response_data)
+
+        # Remove the temporary processed image file
+        os.remove(processed_image_path)
+        
+        response_data["processed_image"] = processed_image_base64
+       
+        return jsonify(response_data)
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 500
+
+
 def upload_image_to_firebase(image_path):
     try:
         # Get the filename from the image_path
