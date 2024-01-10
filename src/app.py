@@ -636,13 +636,13 @@ def push_to_DB(data):
             "fields": {
                 "violation_type": {"stringValue": data["violation_type"]},
                 "violation_details": {"arrayValue": {"values": [{"stringValue": detail} for detail in data["violation_details"]]}},
-                "name_prediction": {"stringValue": data["name_prediction"]},
+                # "name_prediction": {"stringValue": data["name_prediction"]},
                 "processed_image": {"stringValue": upload_image_to_firebase(data["processed_image"])},  # Upload and get the URL here
                 "id": {"stringValue": data["id"]},
                 "location": {"stringValue": data["location"]},
                 "date": {"stringValue": data["date"]},
                 "time": {"stringValue": data["time"]},
-                "organizationId": {"stringValue": data["organizationId"]}
+                # "organizationId": {"stringValue": data["organizationId"]}
                 # Add more fields as needed
             }
         }
